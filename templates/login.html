@@ -1,9 +1,65 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
-    <h1>Login</h1>
-</body>
-</html>
+{# ===================================================================
+   login.html  —  log in to an existing SkillSwap account.
+
+   URL:       /login
+   Endpoint:  login   (needs methods=["GET", "POST"] in app.py)
+   Expects:   user  —  OPTIONAL and normally absent here, because
+                       somebody logging in is not logged in yet.
+   Forms:     ONE form, POSTed to url_for('login'), with the fields
+              email, password.
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}Log in{% endblock %}
+
+{% block content %}
+
+<div class="auth">
+    <div class="card auth__card">
+
+        <h1 class="auth__title">Welcome back</h1>
+        <p class="auth__subtitle">Log in to swap skills with your classmates.</p>
+
+        <form class="form" method="post" action="{{ url_for('login') }}">
+
+            <div class="field">
+                <label class="field__label" for="email">College email</label>
+                <input class="field__input"
+                       type="email"
+                       id="email"
+                       name="email"
+                       autocomplete="email"
+                       placeholder="you@heritageit.edu.in"
+                       required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="password">Password</label>
+
+                <div class="field__with-button">
+                    <input class="field__input"
+                           type="password"
+                           id="password"
+                           name="password"
+                           autocomplete="current-password"
+                           required>
+
+                    <button class="pw-toggle"
+                            type="button"
+                            data-target="password"
+                            aria-pressed="false">Show</button>
+                </div>
+            </div>
+
+            <button class="btn btn--teal btn--block" type="submit">Log in</button>
+        </form>
+
+        <p class="auth__switch">
+            New here?
+            <a href="{{ url_for('signup') }}">Create an account</a>
+        </p>
+
+    </div>
+</div>
+
+{% endblock %}

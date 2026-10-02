@@ -1,0 +1,112 @@
+{# ===================================================================
+   base.html  —  the shared "picture frame" that every other page
+                 sits inside. It holds the navbar, the flash messages
+                 and the footer, so we only write those once.
+
+   URL:       none. This file is never opened on its own.
+   Endpoint:  none. Other templates pull it in with
+              {% extends "base.html" %}
+   Expects:   user  = {name, email, credits, avg_rating, available}
+              This variable is OPTIONAL. If `user` is missing, the
+              visitor is logged out and the navbar shows Log in /
+              Sign up instead of the name and credits.
+   Forms:     none.
+   Holes other pages fill in:  {% block title %} and {% block content %}
+=================================================================== #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {# This line makes the page fit phone screens properly. #}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}SkillSwap{% endblock %} · SkillSwap</title>
+
+    {# Our stylesheet. url_for('static', ...) builds the correct address
+       for files inside the static/ folder. #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+{# A link for keyboard users: it is invisible until you press Tab,
+   then it lets you jump straight past the navbar to the real content. #}
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- ================= NAVBAR ================= -->
+<header class="nav">
+    <div class="wrap nav__inner">
+
+        {# The logo always takes you home. #}
+        <a class="nav__brand" href="{{ url_for('home') }}">
+            Skill<span>Swap</span>
+        </a>
+
+        {# The hamburger button. It only shows on small screens.
+           main.js opens and closes the menu when it is pressed. #}
+        <button class="nav__toggle" id="navToggle"
+                type="button"
+                aria-expanded="false" aria-controls="navMenu">
+            <span class="nav__bars" aria-hidden="true"></span>
+            <span class="sr-only">Menu</span>
+        </button>
+
+        {# The actual list of links. #}
+        <nav class="nav__menu" id="navMenu" aria-label="Main menu">
+            {% if user %}
+                {# ---- Logged IN ---- #}
+                <a class="nav__link" href="{{ url_for('profile') }}">Profile</a>
+                <a class="nav__link" href="{{ url_for('ask_help') }}">Ask for help</a>
+                <a class="nav__link" href="{{ url_for('incoming_requests') }}">Requests</a>
+                <a class="nav__link" href="{{ url_for('my_sessions') }}">Sessions</a>
+
+                {# The credits counter and the user's name. #}
+                <span class="nav__credits" title="Credits you can spend on learning">
+                    <span aria-hidden="true">🪙</span>
+                    {{ user.credits }}
+                    <span class="sr-only">credits</span>
+                </span>
+                <span class="nav__name">Hi, {{ user.name }}</span>
+
+                <a class="nav__link nav__link--quiet" href="{{ url_for('logout') }}">Log out</a>
+            {% else %}
+                {# ---- Logged OUT ---- #}
+                <a class="nav__link" href="{{ url_for('login') }}">Log in</a>
+                <a class="btn btn--amber btn--small" href="{{ url_for('signup') }}">Sign up</a>
+            {% endif %}
+        </nav>
+
+    </div>
+</header>
+
+<!-- ================= FLASH MESSAGES ================= -->
+{# flash() in app.py puts a short message aside. get_flashed_messages()
+   collects them here and then empties the list, so each message is
+   shown exactly once. role="status" makes screen readers announce it. #}
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="wrap flashes" role="status" aria-live="polite">
+            {% for message in messages %}
+                <p class="flash">{{ message }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- ================= PAGE CONTENT ================= -->
+{# Each page fills this hole with its own HTML. #}
+<main id="main" class="wrap main">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer class="footer">
+    <div class="wrap">
+        <p>SkillSwap · teach one thing, learn another.</p>
+        <p class="footer__small">Sessions are free and 20–30 minutes long.</p>
+    </div>
+</footer>
+
+{# Our JavaScript. It loads at the very bottom so the whole page
+   already exists by the time the script runs. #}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{# ===================================================================
+   requests.html  —  people asking YOU to teach them something.
+                     Accepting one is how you earn a credit.
+
+   URL:       /requests
+   Endpoint:  incoming_requests
+   Expects:   user           = {name, email, credits, avg_rating, available}
+              requests_for_me = list of {id, learner_name, topic, language}
+   Forms:     per request card, two POST forms:
+              - accept_request   (no fields, just a button)
+              - decline_request  (no fields, just a button)
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}Requests for me{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Requests for me</h1>
+<p class="page-lead">
+    Accept one and you earn <strong>1 credit</strong> once the session is done.
+</p>
+
+{% if requests_for_me %}
+
+    <ul class="card-grid">
+        {% for req in requests_for_me %}
+            <li class="card request-card">
+
+                <h2 class="request-card__topic">{{ req.topic }}</h2>
+
+                <p class="request-card__who">
+                    <strong>{{ req.learner_name }}</strong> needs help with this.
+                </p>
+
+                <p class="request-card__language">
+                    Wants it explained in <strong>{{ req.language }}</strong>.
+                </p>
+
+                <div class="request-card__actions">
+
+                    {# Accept: a normal POST form. The skill_id-style value
+                       goes into the web address through url_for. #}
+                    <form method="post"
+                          action="{{ url_for('accept_request', request_id=req.id) }}">
+                        <button class="btn btn--teal btn--small" type="submit">Accept</button>
+                    </form>
+
+                    {# Decline: same idea, but data-confirm makes main.js
+                       ask "are you sure?" before the form is sent. #}
+                    <form method="post"
+                          action="{{ url_for('decline_request', request_id=req.id) }}"
+                          data-confirm="Decline {{ req.learner_name }}'s request?">
+                        <button class="btn btn--ghost btn--small" type="submit">Decline</button>
+                    </form>
+
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+
+{% else %}
+
+    {# Friendly empty state instead of an empty page. #}
+    <div class="card empty-state">
+        <p class="empty-state__emoji" aria-hidden="true">📭</p>
+        <h2 class="empty-state__title">No requests yet</h2>
+        <p class="empty-state__text">
+            When a classmate needs a topic you listed under
+            &ldquo;I can teach&rdquo;, their request lands here.
+        </p>
+        <a class="btn btn--navy" href="{{ url_for('profile') }}">Add more teaching topics</a>
+    </div>
+
+{% endif %}
+
+{% endblock %}

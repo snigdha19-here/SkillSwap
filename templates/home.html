@@ -1,10 +1,91 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>SkillSwap</title>
-</head>
-<body>
-    <h1>Welcome to SkillSwap</h1>
-    <p>Learn from classmates.</p>
-</body>
-</html>
+{# ===================================================================
+   home.html  —  the landing page a brand-new visitor sees first.
+
+   URL:       /
+   Endpoint:  home   (the function home() in app.py)
+   Expects:   user = {name, email, credits, avg_rating, available}
+              OPTIONAL. If `user` is missing the visitor is logged out,
+              so we show Sign up / Log in buttons. If it is there we
+              show Go to profile / Ask for help instead.
+   Forms:     none. Everything here is a plain link.
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<!-- ---------- HERO: the big idea in one line ---------- -->
+<section class="hero">
+    <p class="hero__eyebrow">For students, by students</p>
+
+    <h1 class="hero__title">
+        Stuck on one topic?<br>
+        A classmate who gets it can explain it.
+    </h1>
+
+    <p class="hero__text">
+        SkillSwap matches you with someone from your college for a free
+        20&ndash;30 minute session. You teach what you know, you learn
+        what you don&rsquo;t.
+    </p>
+
+    <div class="hero__buttons">
+        {% if user %}
+            {# Already logged in, so send them somewhere useful. #}
+            <a class="btn btn--teal" href="{{ url_for('ask_help') }}">Ask for help</a>
+            <a class="btn btn--ghost" href="{{ url_for('profile') }}">Go to profile</a>
+        {% else %}
+            {# Logged out: invite them to join. #}
+            <a class="btn btn--teal" href="{{ url_for('signup') }}">Sign up free</a>
+            <a class="btn btn--ghost" href="{{ url_for('login') }}">Log in</a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ---------- HOW IT WORKS: four short steps ---------- -->
+<section class="section" aria-labelledby="how-heading">
+    <h2 class="section__title" id="how-heading">How it works</h2>
+
+    <ol class="steps">
+        <li class="step card">
+            <span class="step__number" aria-hidden="true">1</span>
+            <h3 class="step__title">List your topics</h3>
+            <p>Say what you can teach and what you are stuck on.</p>
+        </li>
+        <li class="step card">
+            <span class="step__number" aria-hidden="true">2</span>
+            <h3 class="step__title">Ask for help</h3>
+            <p>Pick a topic and a language you are comfortable in.</p>
+        </li>
+        <li class="step card">
+            <span class="step__number" aria-hidden="true">3</span>
+            <h3 class="step__title">Get matched</h3>
+            <p>A classmate who knows it accepts your request.</p>
+        </li>
+        <li class="step card">
+            <span class="step__number" aria-hidden="true">4</span>
+            <h3 class="step__title">Meet and rate</h3>
+            <p>Talk for 20&ndash;30 minutes, then leave a star rating.</p>
+        </li>
+    </ol>
+</section>
+
+<!-- ---------- THE CREDIT RULE ---------- -->
+<section class="section" aria-labelledby="credits-heading">
+    <h2 class="section__title" id="credits-heading">The credit rule</h2>
+
+    <div class="card credit-rule">
+        <ul class="credit-rule__list">
+            <li><strong>+1 credit</strong> every time you teach someone a concept.</li>
+            <li><strong>&minus;1 credit</strong> every time you ask someone to teach you.</li>
+            <li><strong>2 free credits</strong> waiting for you the day you sign up.</li>
+        </ul>
+        <p class="credit-rule__note">
+            That is the whole economy. Helping others is what keeps you
+            able to ask for help.
+        </p>
+    </div>
+</section>
+
+{% endblock %}

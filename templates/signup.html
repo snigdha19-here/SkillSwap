@@ -1,9 +1,97 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Signup</title>
-</head>
-<body>
-    <h1>Signup</h1>
-</body>
-</html>
+{# ===================================================================
+   signup.html  —  create a new SkillSwap account.
+
+   URL:       /signup
+   Endpoint:  signup   (handles both GET and POST)
+   Expects:   user  —  OPTIONAL and normally absent here, because a
+                       visitor who is signing up is not logged in yet.
+   Forms:     ONE form, POSTed to url_for('signup'), with the fields
+              name, email, password   (these names must match the
+              request.form["..."] lines in app.py).
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}Sign up{% endblock %}
+
+{% block content %}
+
+<div class="auth">
+    <div class="card auth__card">
+
+        <h1 class="auth__title">Create your account</h1>
+        <p class="auth__subtitle">You start with 2 free credits.</p>
+
+        {# method="post" means the browser sends the typed values to the
+           server instead of putting them in the web address.
+           novalidate is NOT used, so the browser also does its own
+           simple checks before the form is sent. #}
+        <form class="form" method="post" action="{{ url_for('signup') }}">
+
+            <div class="field">
+                {# Every input has a <label for="..."> pointing at its id.
+                   That is what lets you tap the words to focus the box,
+                   and what screen readers read out. #}
+                <label class="field__label" for="name">Your name</label>
+                <input class="field__input"
+                       type="text"
+                       id="name"
+                       name="name"
+                       autocomplete="name"
+                       placeholder="Riya Sharma"
+                       required>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="email">College email</label>
+                <input class="field__input"
+                       type="email"
+                       id="email"
+                       name="email"
+                       autocomplete="email"
+                       placeholder="you@heritageit.edu.in"
+                       aria-describedby="email-help"
+                       required>
+                <p class="field__help" id="email-help">
+                    Only your college email address works here.
+                </p>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="password">Password</label>
+
+                {# The input and the show/hide button sit side by side. #}
+                <div class="field__with-button">
+                    <input class="field__input"
+                           type="password"
+                           id="password"
+                           name="password"
+                           autocomplete="new-password"
+                           minlength="6"
+                           aria-describedby="password-help"
+                           required>
+
+                    {# main.js finds this button through its class and uses
+                       data-target to know which input to reveal. #}
+                    <button class="pw-toggle"
+                            type="button"
+                            data-target="password"
+                            aria-pressed="false">Show</button>
+                </div>
+
+                <p class="field__help" id="password-help">
+                    At least 6 characters.
+                </p>
+            </div>
+
+            <button class="btn btn--teal btn--block" type="submit">Sign up</button>
+        </form>
+
+        <p class="auth__switch">
+            Already have an account?
+            <a href="{{ url_for('login') }}">Log in</a>
+        </p>
+
+    </div>
+</div>
+
+{% endblock %}

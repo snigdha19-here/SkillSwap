@@ -1,0 +1,99 @@
+{# ===================================================================
+   ask_help.html  —  ask a classmate to explain something, and see
+                     what happened to the requests you already sent.
+
+   URL:       /ask
+   Endpoint:  ask_help   (handles both GET and POST)
+   Expects:   user        = {name, email, credits, avg_rating, available}
+              topics      = list of strings, for the topic dropdown
+              languages   = list of strings, for the language dropdown
+              my_requests = list of {id, topic, language, status}
+                            status is one of:
+                            waiting / accepted / declined / done
+   Forms:     ONE form, POSTed to url_for('ask_help'),
+              with the fields topic and language.
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}Ask for help{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">Ask for help</h1>
+
+<div class="columns">
+
+    <!-- ---------- The request form ---------- -->
+    <section class="card" aria-labelledby="ask-heading">
+        <h2 class="card__title" id="ask-heading">What are you stuck on?</h2>
+
+        <form class="form" method="post" action="{{ url_for('ask_help') }}">
+
+            <div class="field">
+                <label class="field__label" for="topic">Topic</label>
+                <select class="field__input" id="topic" name="topic" required>
+                    <option value="">Choose a topic&hellip;</option>
+                    {# One <option> per topic sent by the backend. #}
+                    {% for topic in topics %}
+                        <option value="{{ topic }}">{{ topic }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="language">Language to explain in</label>
+                <select class="field__input" id="language" name="language"
+                        aria-describedby="language-help" required>
+                    <option value="">Choose a language&hellip;</option>
+                    {% for language in languages %}
+                        <option value="{{ language }}">{{ language }}</option>
+                    {% endfor %}
+                </select>
+                <p class="field__help" id="language-help">
+                    Pick whichever language you understand fastest.
+                </p>
+            </div>
+
+            {# A clear reminder of the price before they press the button. #}
+            <p class="cost-note">
+                <span aria-hidden="true">🪙</span>
+                This costs <strong>1 credit</strong>.
+                You have <strong>{{ user.credits }}</strong>.
+            </p>
+
+            <button class="btn btn--teal btn--block" type="submit">Ask for help</button>
+        </form>
+    </section>
+
+    <!-- ---------- The list of requests already sent ---------- -->
+    <section class="card" aria-labelledby="mine-heading">
+        <h2 class="card__title" id="mine-heading">Your requests</h2>
+
+        {% if my_requests %}
+            <ul class="request-list">
+                {% for req in my_requests %}
+                    <li class="request-row">
+                        <span class="request-row__text">
+                            <span class="request-row__topic">{{ req.topic }}</span>
+                            <span class="request-row__language">in {{ req.language }}</span>
+                        </span>
+
+                        {# The badge class changes with the status, which is
+                           what gives each status its own colour. The CSS
+                           file has one rule per badge--... name. #}
+                        <span class="badge badge--{{ req.status }}">{{ req.status }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            {# Friendly message instead of a blank space. #}
+            <p class="empty">
+                You have not asked for anything yet.
+                Your requests will show up here with their status.
+            </p>
+        {% endif %}
+    </section>
+
+</div>
+
+{% endblock %}

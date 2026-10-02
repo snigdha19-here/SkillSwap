@@ -1,0 +1,169 @@
+{# ===================================================================
+   profile.html  —  the user's own page: credits, rating, availability,
+                    and the two lists of topics they teach / need.
+
+   URL:       /profile
+   Endpoint:  profile
+   Expects:   user         = {name, email, credits, avg_rating, available}
+              teach_skills = list of {id, topic, language}
+              need_skills  = list of {id, topic, language}
+              topics       = list of strings, for the topic dropdowns
+              languages    = list of strings, for the language dropdowns
+   Forms:     - toggle_availability  (POST, no fields, just a button)
+              - add_skill            (POST: topic, language, kind)
+              - delete_skill         (POST, one per skill, no fields)
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}My profile{% endblock %}
+
+
+{# ------------------------------------------------------------------
+   A "macro" is a reusable chunk of HTML, like a function for pages.
+   We need almost the same block twice (once for "I can teach" and
+   once for "I need help with"), so we write it once here and call it
+   twice below with different values.
+
+   heading     the title shown on the box
+   skills      which list to show (teach_skills or need_skills)
+   kind        the word the backend expects: "teach" or "need"
+   empty_text  what to say when the list has nothing in it
+   add_label   the wording on the add button
+------------------------------------------------------------------ #}
+{% macro skill_section(heading, skills, kind, empty_text, add_label) %}
+<section class="card skills" aria-labelledby="heading-{{ kind }}">
+
+    <h2 class="skills__title" id="heading-{{ kind }}">{{ heading }}</h2>
+
+    {% if skills %}
+        <ul class="skill-list">
+            {% for skill in skills %}
+                <li class="skill">
+                    <span class="skill__text">
+                        <span class="skill__topic">{{ skill.topic }}</span>
+                        <span class="skill__language">in {{ skill.language }}</span>
+                    </span>
+
+                    {# Removing something changes the database, so it must
+                       be a POST form, never a plain link.
+                       data-confirm makes main.js ask "are you sure?" first. #}
+                    <form method="post"
+                          action="{{ url_for('delete_skill', skill_id=skill.id) }}"
+                          data-confirm="Remove {{ skill.topic }} from your list?">
+                        <button class="btn-icon" type="submit">
+                            <span aria-hidden="true">&times;</span>
+                            <span class="sr-only">Remove {{ skill.topic }}</span>
+                        </button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty empty--small">{{ empty_text }}</p>
+    {% endif %}
+
+    {# ---- The add form ---- #}
+    <form class="form form--inline" method="post" action="{{ url_for('add_skill') }}">
+
+        {# A hidden input is not shown to the user, but it IS sent with
+           the form. This is how the backend knows which list to add to. #}
+        <input type="hidden" name="kind" value="{{ kind }}">
+
+        <div class="field">
+            <label class="field__label" for="topic-{{ kind }}">Topic</label>
+            <select class="field__input" id="topic-{{ kind }}" name="topic" required>
+                <option value="">Choose a topic&hellip;</option>
+                {# Build one <option> for every topic the backend sent. #}
+                {% for topic in topics %}
+                    <option value="{{ topic }}">{{ topic }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="language-{{ kind }}">Language</label>
+            <select class="field__input" id="language-{{ kind }}" name="language" required>
+                <option value="">Choose a language&hellip;</option>
+                {% for language in languages %}
+                    <option value="{{ language }}">{{ language }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button class="btn btn--navy" type="submit">{{ add_label }}</button>
+    </form>
+
+</section>
+{% endmacro %}
+
+
+{% block content %}
+
+<!-- ---------- Summary strip: name, credits, rating, availability ---------- -->
+<section class="profile-head card">
+
+    <div class="profile-head__who">
+        <h1 class="profile-head__name">{{ user.name }}</h1>
+        <p class="profile-head__email">{{ user.email }}</p>
+    </div>
+
+    <dl class="stats">
+        <div class="stat">
+            <dt class="stat__label">Credits</dt>
+            <dd class="stat__value">{{ user.credits }}</dd>
+        </div>
+
+        <div class="stat">
+            <dt class="stat__label">Rating</dt>
+            <dd class="stat__value">
+                {# avg_rating can be None when nobody has rated you yet,
+                   so we check before printing a number. #}
+                {% if user.avg_rating %}
+                    {{ user.avg_rating }} <span class="stat__unit">/ 5</span>
+                {% else %}
+                    <span class="stat__none">Not rated yet</span>
+                {% endif %}
+            </dd>
+        </div>
+    </dl>
+
+    {# ---- The availability switch ---- #}
+    <form class="availability" method="post" action="{{ url_for('toggle_availability') }}">
+        <p class="availability__state">
+            {% if user.available %}
+                <span class="dot dot--on" aria-hidden="true"></span>
+                You are <strong>available</strong> to help
+            {% else %}
+                <span class="dot dot--off" aria-hidden="true"></span>
+                You are <strong>not available</strong> right now
+            {% endif %}
+        </p>
+
+        <button class="btn {% if user.available %}btn--ghost{% else %}btn--teal{% endif %} btn--small"
+                type="submit">
+            {% if user.available %}Turn off{% else %}Turn on{% endif %}
+        </button>
+    </form>
+
+</section>
+
+<!-- ---------- The two skill lists, built from the macro above ---------- -->
+<div class="columns">
+    {{ skill_section(
+        'I can teach',
+        teach_skills,
+        'teach',
+        'Nothing here yet. Add a topic you could explain to a classmate.',
+        'Add to teach list'
+    ) }}
+
+    {{ skill_section(
+        'I need help with',
+        need_skills,
+        'need',
+        'Nothing here yet. Add a topic you are stuck on.',
+        'Add to need list'
+    ) }}
+</div>
+
+{% endblock %}

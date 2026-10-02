@@ -1,0 +1,172 @@
+{# ===================================================================
+   sessions.html  —  every session you are part of, as learner or helper:
+                     who it is with, the contact details once the server
+                     decides you may see them, and the rating form.
+
+   URL:       /sessions
+   Endpoint:  my_sessions
+   Expects:   user        = {name, email, credits, avg_rating, available}
+              my_sessions = list of {
+                  id,
+                  role       "learner" or "helper",
+                  other_name,
+                  topic,
+                  language,
+                  status     "accepted" or "done",
+                  contact    text, or None when you may not see it yet,
+                  can_rate   True or False,
+                  stars      number, or None when not rated
+              }
+   Forms:     per session card:
+              - finish_session  (POST: stars as radios 1-5, comment optional)
+              - report_session  (POST, no fields, just a button)
+
+   IMPORTANT: the contact box below is only written into the page when
+   the backend actually sends `contact`. We never put it in the HTML and
+   then hide it with CSS, because hidden HTML can still be read by anyone
+   who views the page source. The server decides who sees contact details.
+=================================================================== #}
+{% extends "base.html" %}
+
+{% block title %}My sessions{% endblock %}
+
+{% block content %}
+
+<h1 class="page-title">My sessions</h1>
+
+{% if my_sessions %}
+
+    <ul class="card-grid">
+        {# We call each item `sess` rather than `session`, because Flask
+           already uses the name `session` for the logged-in visitor. #}
+        {% for sess in my_sessions %}
+            <li class="card session-card">
+
+                <!-- ---- Who and what ---- -->
+                <div class="session-card__head">
+                    {# The role tells you which side of the session you are on. #}
+                    <span class="role role--{{ sess.role }}">
+                        {% if sess.role == 'learner' %}You are learning{% else %}You are helping{% endif %}
+                    </span>
+
+                    <span class="badge badge--{{ sess.status }}">{{ sess.status }}</span>
+                </div>
+
+                <h2 class="session-card__topic">{{ sess.topic }}</h2>
+
+                <p class="session-card__who">
+                    with <strong>{{ sess.other_name }}</strong>,
+                    in {{ sess.language }}
+                </p>
+
+                <!-- ---- Contact details, only if the server sent them ---- -->
+                {% if sess.contact %}
+                    <div class="contact">
+                        <p class="contact__label">How to reach {{ sess.other_name }}</p>
+                        <p class="contact__value">{{ sess.contact }}</p>
+                        <p class="contact__hint">
+                            Agree on a time and meet for 20&ndash;30 minutes.
+                        </p>
+                    </div>
+                {% endif %}
+
+                <!-- ---- The rating form, only while rating is allowed ---- -->
+                {% if sess.can_rate %}
+                    <form class="form rate" method="post"
+                          action="{{ url_for('finish_session', session_id=sess.id) }}">
+
+                        {# A fieldset groups the five radio buttons together,
+                           and the legend is the question being asked. Screen
+                           readers read the legend before each option. #}
+                        <fieldset class="rate__fieldset">
+                            <legend class="rate__legend">How did it go?</legend>
+
+                            {# The five stars are written from 5 down to 1 on
+                               purpose. The CSS flips them back the right way
+                               round on screen, and that ordering is what lets
+                               CSS colour in every star up to the one chosen.
+                               These are real radio buttons, so the form still
+                               works even if JavaScript never loads. #}
+                            <div class="stars">
+                                {% for value in [5, 4, 3, 2, 1] %}
+                                    <input class="stars__input"
+                                           type="radio"
+                                           id="stars-{{ sess.id }}-{{ value }}"
+                                           name="stars"
+                                           value="{{ value }}"
+                                           required>
+                                    <label class="stars__label"
+                                           for="stars-{{ sess.id }}-{{ value }}">
+                                        <span aria-hidden="true">&#9733;</span>
+                                        <span class="sr-only">{{ value }} out of 5</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+
+                            {# main.js writes a short confirmation in here, such
+                               as "You chose 4 of 5". It starts empty. #}
+                            <p class="stars__readout" aria-live="polite"></p>
+                        </fieldset>
+
+                        <div class="field">
+                            <label class="field__label" for="comment-{{ sess.id }}">
+                                Comment <span class="field__optional">(optional)</span>
+                            </label>
+                            <textarea class="field__input"
+                                      id="comment-{{ sess.id }}"
+                                      name="comment"
+                                      rows="2"
+                                      placeholder="Explained it really clearly."></textarea>
+                        </div>
+
+                        <button class="btn btn--teal btn--block" type="submit">
+                            Mark as done
+                        </button>
+                    </form>
+                {% endif %}
+
+                <!-- ---- The stars already given, once the session is done ---- -->
+                {% if sess.status == 'done' %}
+                    <p class="given-stars">
+                        {% if sess.stars %}
+                            Rated:
+                            {# Multiplying a piece of text repeats it, so with
+                               4 stars this draws 4 solid stars and then 1
+                               hollow one to make the total up to five. #}
+                            <span class="given-stars__icons" aria-hidden="true">{{ '★' * sess.stars }}{{ '☆' * (5 - sess.stars) }}</span>
+                            <span class="sr-only">{{ sess.stars }} out of 5</span>
+                        {% else %}
+                            <span class="given-stars__none">No rating given.</span>
+                        {% endif %}
+                    </p>
+                {% endif %}
+
+                <!-- ---- Report is always available ---- -->
+                {# A separate form, because one form can never sit inside
+                   another one in HTML. #}
+                <form class="session-card__report" method="post"
+                      action="{{ url_for('report_session', session_id=sess.id) }}"
+                      data-confirm="Report this session to the SkillSwap team?">
+                    <button class="btn-link" type="submit">Report</button>
+                </form>
+
+            </li>
+        {% endfor %}
+    </ul>
+
+{% else %}
+
+    {# Friendly empty state. #}
+    <div class="card empty-state">
+        <p class="empty-state__emoji" aria-hidden="true">🤝</p>
+        <h2 class="empty-state__title">No sessions yet</h2>
+        <p class="empty-state__text">
+            Once a request is accepted, the session shows up here with the
+            contact details you need.
+        </p>
+        <a class="btn btn--teal" href="{{ url_for('ask_help') }}">Ask for help</a>
+    </div>
+
+{% endif %}
+
+{% endblock %}

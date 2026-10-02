@@ -1,0 +1,1237 @@
+/* ===================================================================
+   style.css  —  all the looks for SkillSwap.
+
+   How to read this file:
+   it is split into numbered sections. Section 1 holds the colours and
+   spacing as "variables", so changing one line there changes the whole
+   site. Everything after that uses those variables.
+
+   The site is written "mobile first": the normal rules are the phone
+   layout, and near the bottom there is one block that rearranges things
+   for bigger screens.
+   =================================================================== */
+
+
+/* ===================================================================
+   1. VARIABLES  —  the colours and sizes used everywhere
+   ===================================================================
+   A variable is a name for a value. We write --navy once here, then
+   use var(--navy) wherever we want that exact colour. :root means
+   "the whole page", so these names work in every rule below.         */
+
+:root {
+    /* The five brand colours */
+    --navy:  #1B2440;   /* dark blue: text, navbar, strong buttons   */
+    --teal:  #2A9D8F;   /* green-blue: the main "do it" colour       */
+    --amber: #F2A541;   /* warm yellow: credits, highlights, warning */
+    --bg:    #F4F6F9;   /* very light grey-blue page background      */
+    --white: #FFFFFF;   /* cards sit on white                        */
+
+    /* Shades worked out from the colours above.
+
+       Why there are two teals and two ambers:
+       white writing on the bright teal only reaches a contrast of
+       3.3 to 1, and the guideline for normal text is 4.5 to 1. So the
+       bright teal is used for accents you look at (the logo, dots,
+       borders) and the darker teal is used behind white writing, where
+       it reaches 5.2 to 1. Same story for the amber. */
+    --navy-soft:   #2E3A5C;  /* slightly lighter navy, for hovers    */
+    --teal-dark:   #21796E;  /* teal behind white writing            */
+    --teal-darker: #1A6058;  /* the same again, for hovers           */
+    --amber-text:  #8A5A00;  /* amber dark enough to read on white   */
+    --ink:         #1B2440;  /* normal body text                     */
+    --ink-muted:   #5A6480;  /* less important text, still readable  */
+    --line:        #DFE4EC;  /* faint lines that only separate things */
+    --line-strong: #8A93A8;  /* darker, for edges you must SEE, such
+                                as the outline of a text box         */
+    --star-empty:  #8A93A8;  /* a star not yet chosen                */
+    --red:         #C0392B;  /* only for declined / report           */
+
+    /* Spacing. Using a small set of sizes keeps the page tidy. */
+    --gap-xs: 4px;
+    --gap-s:  8px;
+    --gap-m:  16px;
+    --gap-l:  24px;
+    --gap-xl: 40px;
+
+    /* Rounded corners */
+    --radius:    14px;
+    --radius-s:  8px;
+    --radius-pill: 999px;   /* big number = fully round ends */
+
+    /* A soft shadow so white cards lift off the grey background */
+    --shadow: 0 2px 8px rgba(27, 36, 64, 0.08);
+}
+
+
+/* ===================================================================
+   2. BASE  —  resets and defaults for plain HTML tags
+   =================================================================== */
+
+/* border-box means padding is counted INSIDE an element's width,
+   which makes widths behave the way you expect. The * means
+   "every element on the page". */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+
+    /* System fonts: whatever the user's device already has. Nothing to
+       download, so the page appears instantly. */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+
+    /* Pushes the footer to the bottom even on short pages. */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    line-height: 1.25;
+    margin: 0 0 var(--gap-s);
+    color: var(--navy);
+}
+
+p {
+    margin: 0 0 var(--gap-m);
+}
+
+a {
+    color: var(--teal-dark);
+}
+
+a:hover {
+    color: var(--navy);
+}
+
+/* ul and ol come with bullets and indenting we usually do not want. */
+ul, ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* .wrap centres the content and stops it stretching too wide to read. */
+.wrap {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 0 var(--gap-m);
+}
+
+/* The main area grows to fill the space, which keeps the footer down. */
+.main {
+    flex: 1;
+    padding-top: var(--gap-l);
+    padding-bottom: var(--gap-xl);
+}
+
+
+/* ===================================================================
+   3. ACCESSIBILITY HELPERS
+   =================================================================== */
+
+/* .sr-only hides text from the screen but keeps it for screen readers.
+   We use it to label icon-only buttons. It is NOT for hiding secrets:
+   the text is still in the page. */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* The "skip to content" link. It sits off-screen until it is focused
+   by pressing Tab, then it slides into view. */
+.skip-link {
+    position: absolute;
+    top: -60px;
+    left: var(--gap-m);
+    z-index: 20;
+    padding: var(--gap-s) var(--gap-m);
+    background: var(--amber);
+    color: var(--navy);
+    font-weight: 600;
+    border-radius: 0 0 var(--radius-s) var(--radius-s);
+    text-decoration: none;
+    transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* A clear ring around whatever is focused, so keyboard users always
+   know where they are. :focus-visible only shows it for keyboard use,
+   not for mouse clicks. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    outline: 3px solid var(--amber);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
+}
+
+
+/* ===================================================================
+   4. NAVBAR
+   =================================================================== */
+
+.nav {
+    background: var(--navy);
+    color: var(--white);
+    position: sticky;   /* stays at the top as you scroll */
+    top: 0;
+    z-index: 10;
+}
+
+.nav__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    min-height: 60px;
+}
+
+.nav__brand {
+    color: var(--white);
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: -0.01em;
+}
+
+/* The second half of the logo gets the teal colour. */
+.nav__brand span {
+    color: var(--teal);
+}
+
+/* --- The hamburger button (phones only) --- */
+.nav__toggle {
+    background: none;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-s);
+    width: 44px;          /* 44px is a comfortable finger-sized target */
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* The three lines are drawn with one real element plus two fake ones
+   ("::before" and "::after"), so we do not need any images. */
+.nav__bars,
+.nav__bars::before,
+.nav__bars::after {
+    content: "";
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--white);
+    position: relative;
+}
+
+.nav__bars::before { position: absolute; top: -6px; }
+.nav__bars::after  { position: absolute; top: 6px; }
+
+/* --- The links --- */
+/* On phones the menu is hidden until main.js adds the class
+   nav__menu--open (which happens when the hamburger is pressed). */
+.nav__menu {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    gap: var(--gap-xs);
+    padding-bottom: var(--gap-m);
+}
+
+.nav__menu--open {
+    display: flex;
+}
+
+.nav__link {
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+    padding: var(--gap-s) var(--gap-s);
+    border-radius: var(--radius-s);
+    font-weight: 500;
+}
+
+.nav__link:hover {
+    background: var(--navy-soft);
+    color: var(--white);
+}
+
+.nav__link--quiet {
+    color: rgba(255, 255, 255, 0.65);
+}
+
+/* The credit counter: a small amber pill so it stands out. */
+.nav__credits {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--gap-xs);
+    align-self: flex-start;
+    background: var(--amber);
+    color: var(--navy);
+    font-weight: 700;
+    padding: 2px var(--gap-s);
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+}
+
+.nav__name {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    padding: var(--gap-xs) var(--gap-s);
+}
+
+
+/* ===================================================================
+   5. FLASH MESSAGES  —  the short notes the backend sends with flash()
+   =================================================================== */
+
+.flashes {
+    margin-top: var(--gap-m);
+}
+
+.flash {
+    background: #FFF6E6;                    /* pale amber */
+    border-left: 4px solid var(--amber);
+    border-radius: var(--radius-s);
+    padding: var(--gap-s) var(--gap-m);
+    margin-bottom: var(--gap-s);
+    color: var(--navy);
+
+    /* main.js adds the class flash--gone after 5 seconds, and this
+       transition makes that change fade smoothly instead of snapping. */
+    transition: opacity 0.6s ease;
+}
+
+.flash--gone {
+    opacity: 0;
+}
+
+
+/* ===================================================================
+   6. BUTTONS
+   =================================================================== */
+
+/* .btn is the shared shape. The btn--... classes only change colours,
+   so every button is the same size and roundness. */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--gap-s);
+    padding: 12px var(--gap-l);
+    border: 2px solid transparent;
+    border-radius: var(--radius-pill);
+    font: inherit;          /* use the same font as the rest of the page */
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn--teal {
+    /* The darker teal, not the bright one, so the white writing on top
+       is easy to read. See the note next to the variables at the top. */
+    background: var(--teal-dark);
+    color: var(--white);
+}
+
+.btn--teal:hover {
+    background: var(--teal-darker);
+    color: var(--white);
+}
+
+.btn--navy {
+    background: var(--navy);
+    color: var(--white);
+}
+
+.btn--navy:hover {
+    background: var(--navy-soft);
+    color: var(--white);
+}
+
+.btn--amber {
+    background: var(--amber);
+    color: var(--navy);
+}
+
+.btn--amber:hover {
+    background: #E0942F;
+    color: var(--navy);
+}
+
+/* An outlined button, for the less important of two choices. */
+.btn--ghost {
+    background: transparent;
+    border-color: var(--navy);
+    color: var(--navy);
+}
+
+.btn--ghost:hover {
+    background: var(--navy);
+    color: var(--white);
+}
+
+.btn--small {
+    padding: 7px var(--gap-m);
+    font-size: 0.9rem;
+}
+
+/* Stretches to the full width of its box. Good on narrow phones. */
+.btn--block {
+    width: 100%;
+}
+
+/* A small round button holding a single symbol, used for "remove". */
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    /* 40px square is big enough to tap accurately on a phone. */
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--ink-muted);
+    cursor: pointer;
+    flex-shrink: 0;         /* never squash it when space runs out */
+}
+
+.btn-icon:hover {
+    background: var(--red);
+    border-color: var(--red);
+    color: var(--white);
+}
+
+/* A button that looks like a plain text link, for "Report". */
+.btn-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.btn-link:hover {
+    color: var(--red);
+}
+
+
+/* ===================================================================
+   7. CARDS AND LAYOUT
+   =================================================================== */
+
+/* A white box with soft corners. The main building block of the site. */
+.card {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: var(--gap-l);
+}
+
+.card__title {
+    font-size: 1.15rem;
+    margin-bottom: var(--gap-m);
+}
+
+/* .columns stacks its children on phones. The media query near the
+   bottom turns it into two side-by-side columns on wider screens. */
+.columns {
+    display: grid;
+    gap: var(--gap-l);
+}
+
+/* .card-grid is the same idea for lists of cards. */
+.card-grid {
+    display: grid;
+    gap: var(--gap-m);
+}
+
+.page-title {
+    font-size: 1.6rem;
+    margin-bottom: var(--gap-xs);
+}
+
+.page-lead {
+    color: var(--ink-muted);
+    margin-bottom: var(--gap-l);
+}
+
+.section {
+    margin-top: var(--gap-xl);
+}
+
+.section__title {
+    font-size: 1.35rem;
+    margin-bottom: var(--gap-m);
+}
+
+
+/* ===================================================================
+   8. FORMS
+   =================================================================== */
+
+.form {
+    display: grid;
+    gap: var(--gap-m);
+}
+
+/* One label + one input + its help text. */
+.field {
+    display: grid;
+    gap: var(--gap-xs);
+}
+
+.field__label {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--navy);
+}
+
+.field__optional {
+    font-weight: 400;
+    color: var(--ink-muted);
+}
+
+/* The same look for text boxes, dropdowns and the comment box. */
+.field__input {
+    width: 100%;
+    padding: 11px var(--gap-m);
+    border: 2px solid var(--line-strong);
+    border-radius: var(--radius-s);
+    background: var(--white);
+    color: var(--ink);
+    font: inherit;
+
+    /* 16px or more stops iPhones zooming in when you tap a field. */
+    font-size: 1rem;
+}
+
+.field__input:hover {
+    border-color: var(--ink-muted);
+}
+
+/* The border turns teal while you are typing in the field. */
+.field__input:focus {
+    border-color: var(--teal);
+}
+
+textarea.field__input {
+    resize: vertical;       /* let people make it taller, not wider */
+}
+
+.field__help {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+/* An input with the Show/Hide password button beside it. */
+.field__with-button {
+    display: flex;
+    gap: var(--gap-s);
+}
+
+.pw-toggle {
+    flex-shrink: 0;
+    min-width: 68px;
+    background: var(--bg);
+    border: 2px solid var(--line-strong);
+    border-radius: var(--radius-s);
+    color: var(--navy);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pw-toggle:hover {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: var(--white);
+}
+
+
+/* ===================================================================
+   9. BADGES AND SMALL STATUS BITS
+   =================================================================== */
+
+/* A small rounded label. The colour comes from the second class,
+   for example badge--waiting, which Jinja builds from the status. */
+.badge {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.badge--waiting  { background: #FFF1DB; color: #8A5A00; }  /* amber  */
+.badge--accepted { background: #DFF3F0; color: #1B6F65; }  /* teal   */
+.badge--declined { background: #FBE3E0; color: #96271B; }  /* red    */
+.badge--done     { background: #E4E8F1; color: var(--navy); } /* grey */
+
+/* The little coloured circle next to "You are available". */
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: var(--gap-xs);
+}
+
+.dot--on  { background: var(--teal); }
+.dot--off { background: #AAB3C5; }
+
+/* Tells you whether you are the learner or the helper in a session. */
+.role {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.role--learner { color: var(--teal-dark); }
+.role--helper  { color: var(--amber-text); }
+
+
+/* ===================================================================
+   10. HOME PAGE
+   =================================================================== */
+
+.hero {
+    padding: var(--gap-l) 0 var(--gap-m);
+}
+
+.hero__eyebrow {
+    color: var(--teal-dark);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: var(--gap-s);
+}
+
+.hero__title {
+    font-size: 2rem;
+    letter-spacing: -0.02em;
+    margin-bottom: var(--gap-m);
+}
+
+.hero__text {
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+    max-width: 46ch;        /* about 46 characters: a comfy line length */
+}
+
+.hero__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-s);
+}
+
+/* The four "how it works" steps. */
+.steps {
+    display: grid;
+    gap: var(--gap-m);
+    counter-reset: step;
+}
+
+.step {
+    padding: var(--gap-m) var(--gap-l);
+}
+
+.step__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: var(--gap-s);
+}
+
+.step__title {
+    font-size: 1.05rem;
+    margin-bottom: var(--gap-xs);
+}
+
+.step p {
+    margin: 0;
+    color: var(--ink-muted);
+}
+
+.credit-rule__list {
+    display: grid;
+    gap: var(--gap-s);
+    margin-bottom: var(--gap-m);
+}
+
+.credit-rule__list li {
+    padding-left: var(--gap-m);
+    border-left: 3px solid var(--amber);
+}
+
+.credit-rule__note {
+    margin: 0;
+    color: var(--ink-muted);
+}
+
+
+/* ===================================================================
+   11. LOGIN AND SIGN-UP PAGES
+   =================================================================== */
+
+.auth {
+    display: flex;
+    justify-content: center;
+    padding-top: var(--gap-m);
+}
+
+.auth__card {
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth__title {
+    font-size: 1.5rem;
+    margin-bottom: var(--gap-xs);
+}
+
+.auth__subtitle {
+    color: var(--ink-muted);
+    margin-bottom: var(--gap-l);
+}
+
+.auth__switch {
+    margin: var(--gap-l) 0 0;
+    padding-top: var(--gap-m);
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--ink-muted);
+}
+
+
+/* ===================================================================
+   12. PROFILE PAGE
+   =================================================================== */
+
+.profile-head {
+    display: grid;
+    gap: var(--gap-l);
+    margin-bottom: var(--gap-l);
+}
+
+.profile-head__name {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+}
+
+.profile-head__email {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+
+    /* Long email addresses wrap instead of stretching the card. */
+    overflow-wrap: break-word;
+}
+
+/* Credits and rating side by side. */
+.stats {
+    display: flex;
+    gap: var(--gap-l);
+    margin: 0;
+}
+
+.stat__label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+}
+
+.stat__value {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.stat__unit {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--ink-muted);
+}
+
+.stat__none {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--ink-muted);
+}
+
+/* The availability switch sits in its own tinted strip. */
+.availability {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-s);
+    background: var(--bg);
+    border-radius: var(--radius-s);
+    padding: var(--gap-s) var(--gap-m);
+}
+
+.availability__state {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* One skill: text on the left, remove button on the right. */
+.skills__title {
+    font-size: 1.15rem;
+    margin-bottom: var(--gap-m);
+}
+
+.skill-list {
+    display: grid;
+    gap: var(--gap-s);
+    margin-bottom: var(--gap-l);
+}
+
+.skill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-s);
+    background: var(--bg);
+    border-radius: var(--radius-s);
+    padding: var(--gap-s) var(--gap-m);
+}
+
+.skill__text {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--gap-s);
+}
+
+.skill__topic {
+    font-weight: 600;
+}
+
+.skill__language {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+/* A line above the add form separates it from the list. */
+.form--inline {
+    padding-top: var(--gap-m);
+    border-top: 1px solid var(--line);
+}
+
+
+/* ===================================================================
+   13. ASK FOR HELP PAGE
+   =================================================================== */
+
+/* The "costs 1 credit" reminder. */
+.cost-note {
+    margin: 0;
+    background: #FFF6E6;
+    border: 1px solid var(--amber);
+    border-radius: var(--radius-s);
+    padding: var(--gap-s) var(--gap-m);
+    font-size: 0.95rem;
+}
+
+.request-list {
+    display: grid;
+    gap: var(--gap-s);
+}
+
+.request-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-s);
+    padding: var(--gap-s) 0;
+    border-bottom: 1px solid var(--line);
+}
+
+/* :last-child means the final item in the list, which needs no line. */
+.request-row:last-child {
+    border-bottom: none;
+}
+
+.request-row__text {
+    display: flex;
+    flex-direction: column;
+}
+
+.request-row__topic {
+    font-weight: 600;
+}
+
+.request-row__language {
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+
+/* ===================================================================
+   14. INCOMING REQUESTS PAGE
+   =================================================================== */
+
+.request-card__topic {
+    font-size: 1.2rem;
+    margin-bottom: var(--gap-s);
+}
+
+.request-card__who,
+.request-card__language {
+    margin-bottom: var(--gap-s);
+    color: var(--ink-muted);
+}
+
+.request-card__actions {
+    display: flex;
+    gap: var(--gap-s);
+    margin-top: var(--gap-m);
+}
+
+
+/* ===================================================================
+   15. SESSIONS PAGE
+   =================================================================== */
+
+.session-card {
+    display: grid;
+    gap: var(--gap-s);
+}
+
+.session-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-s);
+}
+
+.session-card__topic {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.session-card__who {
+    margin: 0;
+    color: var(--ink-muted);
+}
+
+/* The highlighted contact box. Teal tint so it is clearly the
+   important part of the card. */
+.contact {
+    background: #E8F6F4;
+    border: 1px solid var(--teal);
+    border-radius: var(--radius-s);
+    padding: var(--gap-m);
+}
+
+.contact__label {
+    margin: 0 0 var(--gap-xs);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--teal-dark);
+}
+
+.contact__value {
+    margin: 0 0 var(--gap-xs);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--navy);
+    overflow-wrap: break-word;   /* long emails or links wrap safely */
+}
+
+.contact__hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+/* --- The rating form --- */
+.rate {
+    padding-top: var(--gap-s);
+    border-top: 1px solid var(--line);
+}
+
+/* A fieldset comes with its own border and padding, which we clear. */
+.rate__fieldset {
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.rate__legend {
+    padding: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--navy);
+}
+
+/* --- The five stars ---
+   The radio buttons are written 5,4,3,2,1 in the HTML.
+   row-reverse flips them on screen so they read 1,2,3,4,5 left to
+   right. That trick is what makes the rule further down work. */
+.stars {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 2px;
+    margin: var(--gap-xs) 0;
+}
+
+/* The real radio button is hidden visually, but it is still there, so
+   it still works with the keyboard and still gets submitted. */
+.stars__input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+/* The star we actually see is the label for that radio button. */
+.stars__label {
+    font-size: 1.9rem;
+    line-height: 1;
+    color: var(--star-empty);   /* grey = not chosen */
+    cursor: pointer;
+    padding: 0 1px;
+    transition: color 0.1s ease;
+}
+
+/* "input:checked ~ label" means: every label that comes AFTER the
+   chosen radio in the HTML. Because the HTML counts down 5 to 1, those
+   are the lower numbers, and row-reverse puts them on the left. So
+   choosing 3 fills in stars 1, 2 and 3. */
+.stars__input:checked ~ .stars__label {
+    color: var(--amber);
+}
+
+/* The same idea for hovering, so the stars light up as you move
+   across them before you click. */
+.stars__label:hover,
+.stars__label:hover ~ .stars__label {
+    color: var(--amber);
+}
+
+/* Keyboard users get a ring around the star they are on. */
+.stars__input:focus-visible + .stars__label {
+    outline: 3px solid var(--amber);
+    outline-offset: 2px;
+    border-radius: var(--radius-s);
+}
+
+/* The short line main.js writes, such as "You chose 4 of 5". */
+.stars__readout {
+    margin: 0;
+    min-height: 1.2em;      /* keeps the height steady when empty */
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+/* The stars shown back to you after the session is done. */
+.given-stars {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+}
+
+.given-stars__icons {
+    color: var(--amber);
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.given-stars__none {
+    font-style: italic;
+}
+
+.session-card__report {
+    margin-top: var(--gap-xs);
+    padding-top: var(--gap-s);
+    border-top: 1px solid var(--line);
+}
+
+
+/* ===================================================================
+   16. EMPTY STATES  —  what to show when a list has nothing in it
+   =================================================================== */
+
+.empty {
+    color: var(--ink-muted);
+    background: var(--bg);
+    border-radius: var(--radius-s);
+    padding: var(--gap-m);
+    margin: 0 0 var(--gap-m);
+}
+
+.empty--small {
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--gap-xl) var(--gap-l);
+}
+
+.empty-state__emoji {
+    font-size: 2.5rem;
+    margin: 0 0 var(--gap-s);
+}
+
+.empty-state__title {
+    font-size: 1.25rem;
+}
+
+.empty-state__text {
+    color: var(--ink-muted);
+    max-width: 40ch;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* ===================================================================
+   17. FOOTER
+   =================================================================== */
+
+.footer {
+    background: var(--navy);
+    color: rgba(255, 255, 255, 0.8);
+    padding: var(--gap-l) 0;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.footer p {
+    margin: 0;
+}
+
+.footer__small {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: var(--gap-xs);
+}
+
+
+/* ===================================================================
+   18. BIGGER SCREENS
+   ===================================================================
+   Everything above is the phone layout. A "media query" is a block of
+   rules that only applies when a condition is true. 700px is where we
+   have room for the navbar links in one row and two columns of cards. */
+
+@media (min-width: 700px) {
+
+    /* The hamburger is no longer needed. */
+    .nav__toggle {
+        display: none;
+    }
+
+    /* The menu is always visible and sits in a single row. */
+    .nav__menu {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: auto;
+        gap: var(--gap-xs);
+        padding-bottom: 0;
+    }
+
+    .hero {
+        padding: var(--gap-xl) 0 var(--gap-l);
+    }
+
+    .hero__title {
+        font-size: 2.6rem;
+    }
+
+    /* Four steps across the page instead of stacked. */
+    .steps {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Two equal columns. "1fr" means one share of the free space. */
+    .columns {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .card-grid {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    /* Name on the left, stats and switch on the right. */
+    .profile-head {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+    }
+
+    .availability {
+        grid-column: 1 / -1;    /* stretch across both columns */
+    }
+
+    .page-title {
+        font-size: 1.9rem;
+    }
+}
+
+
+/* ===================================================================
+   19. PEOPLE WHO PREFER LESS MOVEMENT
+   ===================================================================
+   Some people set their device to reduce animation, often because
+   motion makes them feel unwell. We respect that and switch our small
+   transitions off. */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
