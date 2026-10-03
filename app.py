@@ -137,7 +137,7 @@ def skills_for(user_id, kind):
 @app.route("/profile")
 @login_required
 def profile():
-    return render_template("profile.html", teach_skills=[], need_skills=[], topics=TOPICS, languages=LANGUAGES)
+        return render_template("profile.html", teach_skills=skills_for(session["user_id"], "teach"), need_skills=skills_for(session["user_id"], "need"),topics=TOPICS, languages=LANGUAGES)
 
 @app.route("/profile/skills/add", methods=["POST"])
 @login_required
